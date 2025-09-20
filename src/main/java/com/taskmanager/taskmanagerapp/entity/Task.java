@@ -1,10 +1,20 @@
 package com.taskmanager.taskmanagerapp.entity;
 
 
+
+import jakarta.persistence.*;
+
+
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name = "tasks")
 public class Task {
+
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
     private Long id;
+
     private String title;
     private String description;
     private boolean completed;
@@ -42,21 +52,9 @@ public class Task {
         this.completed = completed;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Task(Long id, String title, String description, boolean completed) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.completed = completed;
+    // lifecycle hook runs before INSERT
+    @PrePersist
+    public void prePersist() {
         this.createdAt = LocalDateTime.now();
     }
-
-
 }

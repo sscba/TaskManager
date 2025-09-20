@@ -1,14 +1,15 @@
 package com.taskmanager.taskmanagerapp.service;
 
-
 import com.taskmanager.taskmanagerapp.entity.Task;
 import com.taskmanager.taskmanagerapp.repository.TaskManagerRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@Transactional
 public class TaskManagerServiceImpl implements  TaskManagerService{
     TaskManagerRepository managerRepository;
 
@@ -17,32 +18,40 @@ public class TaskManagerServiceImpl implements  TaskManagerService{
 //        System.out.println(":::::::: SERVICE IMPL BEAN INJECTED ::::::::");
     }
 
-    public Task getTask() {
-        return managerRepository.createTask();
+    public List<Task> getTask(){
+        return managerRepository.findAll();
     }
 
-    @Override
-    public Task getTask(long id) {
-        return managerRepository.getTask(id);
+    public Optional<Task> getTask(Long id){
+        return managerRepository.findById(id);
     }
 
-    @Override
-    public List<Task> getTasks() {
-        return managerRepository.getTasks();
+    public Task addTask(Task task){
+        return managerRepository.save(task);
     }
 
-    @Override
-    public String addTask(Task task) {
-        return managerRepository.addTask(task);
+    public Task updateTask(Long id,Task newTask){
+        return managerRepository.findById(id)
+                .map(task ->{
+                    task.setTitle(newTask.getTitle());
+                    task.setDescription(newTask.getDescription());
+                    task.setCompleted( newTask.isCompleted());
+                    return managerRepository.save(task);
+                })
+        .orElseThrow(() -> new RuntimeException("Task not found with id " + id));
     }
 
-    @Override
-    public String updateTask(long id, Task task) {
-        return managerRepository.updateTask(id,task);
+    public Task patchUpdateTask(Long id, Task newTask){
+        return managerRepository.findById(id)
+                .map(task -> {
+                    if(newTask.getTitle() != null) task.setTitle(newTask.getTitle());
+                    if(newTask.getDescription() != null) task.setDescription(newTask.getDescription());
+                    return managerRepository.save(task);
+                })
+                .orElseThrow(() -> new RuntimeException("Task not found with id "+ id));
     }
 
-    @Override
-    public String deleteTask(long id) {
-        return managerRepository.deleteTask(id);
+    public void deleteTask(Long id){
+        managerRepository.deleteById(id);
     }
 }
