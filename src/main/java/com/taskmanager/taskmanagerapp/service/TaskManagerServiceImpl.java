@@ -35,7 +35,7 @@ public class TaskManagerServiceImpl implements  TaskManagerService{
                 .map(task ->{
                     task.setTitle(newTask.getTitle());
                     task.setDescription(newTask.getDescription());
-                    task.setCompleted( newTask.isCompleted());
+                    task.setStatus( newTask.getStatus());
                     return managerRepository.save(task);
                 })
         .orElseThrow(() -> new RuntimeException("Task not found with id " + id));

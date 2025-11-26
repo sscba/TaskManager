@@ -3,58 +3,53 @@ package com.taskmanager.taskmanagerapp.entity;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tasks")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Task {
 
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Id
+    @GeneratedValue( strategy = GenerationType.SEQUENCE,generator = "seq_task_id")
+    @SequenceGenerator(name="seq_task_id", sequenceName = "SEQ_TASK_ID", initialValue = 100,  allocationSize = 2)
     private Long id;
 
+    @Column(nullable = false)
     private String title;
+
     private String description;
-    private boolean completed;
+
+    @Column(nullable = false)
+    private String status = "PENDING";
+
+    @Column(nullable = false)
+    private String priority = "MEDIUM";
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private UserDetails assignedUser;
+
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
 
     // lifecycle hook runs before INSERT
     @PrePersist
     public void prePersist() {
-        this.createdAt = LocalDateTime.now();
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate(){
+        updatedAt = LocalDateTime.now();
     }
 }
