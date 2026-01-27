@@ -1,42 +1,37 @@
 package com.taskmanager.taskmanagerapp.controller;
 
+import com.taskmanager.taskmanagerapp.dto.AuthResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.LoginRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.RegisterRequestDTO;
 import com.taskmanager.taskmanagerapp.dto.UserRegistrationDTO;
 import com.taskmanager.taskmanagerapp.entity.UserDetails;
 import com.taskmanager.taskmanagerapp.repository.UserRepository;
+import com.taskmanager.taskmanagerapp.service.AuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
+@RequiredArgsConstructor
 public class AuthController {
 
-    private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder;
-
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-    }
+    private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegistrationDTO dto){
-        if(userRepository.existsByUsername(dto.getUsername())){
-            return ResponseEntity.badRequest().body("Username already exists");
-        }
-
-        UserDetails user = new UserDetails();
-        user.setUsername(dto.getUsername());
-        user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setEmail(dto.getEmail());
-        user.setFullname(dto.getFullname());
-        user.setRole(dto.getRole() != null ? dto.getRole() : "USER");
-        user.setEnable(true);
-
-        userRepository.save(user);
-        return ResponseEntity.ok("User registered successfully");
+    public ResponseEntity<AuthResponseDTO> registerUser(@Valid @RequestBody RegisterRequestDTO request){
+        AuthResponseDTO response = authService.register(request);
+        return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @GetMapping("/login")
+    public ResponseEntity<AuthResponseDTO> registerUser(@Valid @RequestBody LoginRequestDTO request){
+        AuthResponseDTO response = authService.login(request);
+        return ResponseEntity.ok(response);
+    }
+
+
 }

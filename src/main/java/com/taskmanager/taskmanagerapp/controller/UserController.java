@@ -1,89 +1,96 @@
 package com.taskmanager.taskmanagerapp.controller;
 
 import com.taskmanager.taskmanagerapp.auth.security.CustomUserDetails;
-import com.taskmanager.taskmanagerapp.dto.TaskDTO;
-import com.taskmanager.taskmanagerapp.entity.Task;
-import com.taskmanager.taskmanagerapp.entity.UserDetails;
-import com.taskmanager.taskmanagerapp.repository.TaskManagerRepository;
-import com.taskmanager.taskmanagerapp.repository.UserRepository;
+import com.taskmanager.taskmanagerapp.dto.ApiResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.TaskRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.TaskResponseDTO;
+import com.taskmanager.taskmanagerapp.service.TaskService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping("/api/user")
 @PreAuthorize("hasRole('USER')")
+@RequiredArgsConstructor
 public class UserController {
-    private UserRepository userRepository;
-    private TaskManagerRepository taskManagerRepository;
 
-    public UserController(UserRepository userRepository, TaskManagerRepository taskManagerRepository) {
-        this.userRepository = userRepository;
-        this.taskManagerRepository = taskManagerRepository;
-    }
+    private final TaskService taskService;
 
     @GetMapping("/tasks")
-    public ResponseEntity<List<TaskDTO>> getMyTasks(Authentication auth){
-        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        Long userId = userDetails.getUserDetails().getId();
+    public ResponseEntity<List<TaskResponseDTO>> getAllTasks(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        List<TaskResponseDTO> tasks = taskService.getAllTasksForUser(userId);
+        return ResponseEntity.ok(tasks);
+    }
 
-        List<Task> tasks = taskManagerRepository.findByAssignedUserId(userId);
-        List<TaskDTO> taskDTOs = tasks.stream().map(this::convertToDTO).collect(Collectors.toList());
-        return ResponseEntity
-                .ok(taskDTOs);
+    @GetMapping("/tasks/{id}")
+    public ResponseEntity<TaskResponseDTO> getTaskById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        TaskResponseDTO task = taskService.getTaskById(id, userId);
+        return ResponseEntity.ok(task);
+    }
+
+    @GetMapping("/tasks/status/{status}")
+    public ResponseEntity<List<TaskResponseDTO>> getTasksByStatus(
+            @PathVariable String status,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        List<TaskResponseDTO> tasks = taskService.getTasksByStatus(userId, status);
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/tasks/priority/{priority}")
+    public ResponseEntity<List<TaskResponseDTO>> getTasksByPriority(
+            @PathVariable String priority,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        List<TaskResponseDTO> tasks = taskService.getTasksByPriority(userId, priority);
+        return ResponseEntity.ok(tasks);
+    }
+
+    @GetMapping("/tasks/count")
+    public ResponseEntity<Long> getTaskCount(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        Long count = taskService.getTaskCount(userId);
+        return ResponseEntity.ok(count);
     }
 
     @PostMapping("/tasks")
-    public ResponseEntity<?> createTask(@RequestBody TaskDTO dto, Authentication auth){
-        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        UserDetails user = userDetails.getUserDetails();
-
-        Task task = new Task();
-        task.setTitle(dto.getTitle());
-        task.setDescription(dto.getDescription());
-        task.setStatus(dto.getStatus() != null ? dto.getStatus() : "PENDING");
-        task.setPriority(dto.getPriority()!= null ? dto.getPriority() : "MEDIUM" );
-        task.setAssignedUser(user);
-
-        taskManagerRepository.save(task);
-        return ResponseEntity.ok("Task created successfully");
+    public ResponseEntity<TaskResponseDTO> createTask(
+            @Valid @RequestBody TaskRequestDTO request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        TaskResponseDTO task = taskService.createTask(request, userId);
+        return new ResponseEntity<>(task, HttpStatus.CREATED);
     }
 
-    @PutMapping("/task/{id}")
-    public ResponseEntity<?> updateTask(@PathVariable Long id, @RequestBody TaskDTO dto, Authentication auth){
-        CustomUserDetails userDetails = (CustomUserDetails) auth.getPrincipal();
-        Long userId = userDetails.getUserDetails().getId();
-
-        return taskManagerRepository.findById(id)
-                .map(task -> {
-                    if(!task.getAssignedUser().getId().equals(userId)){
-                        return ResponseEntity.status(403).body("Access dennied");
-                    }
-
-                    if(dto.getTitle() != null) task.setTitle(dto.getTitle());
-                    if(dto.getDescription() != null) task.setDescription(dto.getDescription());
-                    if(dto.getStatus() != null) task.setStatus(dto.getStatus());
-                    if(dto.getPriority() != null) task.setPriority(dto.getPriority());
-
-                    taskManagerRepository.save(task);
-                    return ResponseEntity.ok("Task updated successfully");
-                })
-                .orElse(ResponseEntity.notFound().build());
+    @PutMapping("/tasks/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask(
+            @PathVariable Long id,
+            @Valid @RequestBody TaskRequestDTO request,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        TaskResponseDTO task = taskService.updateTask(id, request, userId);
+        return ResponseEntity.ok(task);
     }
 
-    private TaskDTO convertToDTO(Task task) {
-        TaskDTO dto = new TaskDTO();
-        dto.setId(task.getId());
-        dto.setTitle(task.getTitle());
-        dto.setDescription(task.getDescription());
-        dto.setStatus(task.getStatus());
-        dto.setPriority(task.getPriority());
-        dto.setUserId(task.getAssignedUser().getId());
-        dto.setUsername(task.getAssignedUser().getUsername());
-        return dto;
+    @DeleteMapping("/tasks/{id}")
+    public ResponseEntity<ApiResponseDTO> deleteTask(
+            @PathVariable Long id,
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        Long userId = userDetails.getUser().getId();
+        taskService.deleteTask(id, userId);
+        return ResponseEntity.ok(ApiResponseDTO.success("Task deleted successfully"));
     }
 }

@@ -1,7 +1,13 @@
 package com.taskmanager.taskmanagerapp.controller;
 
+import com.taskmanager.taskmanagerapp.dto.ApiResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.UpdateUserRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.UserResponseDTO;
 import com.taskmanager.taskmanagerapp.entity.UserDetails;
 import com.taskmanager.taskmanagerapp.repository.UserRepository;
+import com.taskmanager.taskmanagerapp.service.UserService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -11,44 +17,38 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
+@RequiredArgsConstructor
 public class AdminController {
 
-    private UserRepository userRepository;
-
-    public AdminController(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
+    private UserService userService;
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserDetails>> getAllUsers(){
-        List<UserDetails> users = userRepository.findAll();
-        users.forEach(u -> u.setPassword("***"));
-        return ResponseEntity.ok(users);
+    public ResponseEntity<List<UserResponseDTO>> getAllUsers(){
+        List<UserResponseDTO> response = userService.getAllUsers();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<UserDetails> getUserById(@PathVariable Long id){
-        return userRepository.findById(id)
-                .map(user -> {
-                    user.setPassword("***");
-                    return ResponseEntity.ok(user);
-                })
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id){
-        if(!userRepository.existsById(id)){
-            return ResponseEntity.notFound().build();
-        }
-        userRepository.deleteById(id);
-        return ResponseEntity.ok("User deleted successfully");
+    public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Long id){
+        UserResponseDTO response = userService.getUserById(id);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/users/role/{role}")
-    public ResponseEntity<List<UserDetails>> getUsersByRole(@PathVariable String role){
-        List<UserDetails> users = userRepository.findByRole(role.toUpperCase());
-        users.forEach(u->u.setPassword("***"));
-        return ResponseEntity.ok(users);
+    public ResponseEntity<List<UserResponseDTO>> getUserById(@PathVariable String role){
+        List<UserResponseDTO> response = userService.getUsersByRole(role);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/users/{id}")
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequestDTO request){
+        UserResponseDTO response = userService.updateUser(id,request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/users/{id}")
+    public ResponseEntity<ApiResponseDTO> deleteUser(@PathVariable Long id){
+        userService.deleteUser(id);
+        return ResponseEntity.ok(ApiResponseDTO.success("User deleted successfully"));
     }
 }

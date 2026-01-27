@@ -1,29 +1,55 @@
 package com.taskmanager.taskmanagerapp.auth.security;
 
-import com.taskmanager.taskmanagerapp.entity.UserDetails;
+import com.taskmanager.taskmanagerapp.entity.User;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.Collections;
 
+@AllArgsConstructor
+@Getter
+public class CustomUserDetails implements UserDetails {
 
-public class CustomUserDetails extends User {
+    private final User user;
 
-    private final UserDetails userDetails;
-
-    public CustomUserDetails(UserDetails userDetails){
-        super(userDetails.getUsername(), userDetails.getPassword(), userDetails.isEnable(),
-                true,true,true,getAuthorities(userDetails.getRole()));
-        this.userDetails = userDetails;
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+        );
     }
 
-    private static Collection<? extends GrantedAuthority> getAuthorities(String role){
-        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+ role));
+    @Override
+    public String getPassword() {
+        return user.getPassword();
     }
 
-    public UserDetails getUserDetails(){
-        return userDetails;
+    @Override
+    public String getUsername() {
+        return user.getUsername();
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return user.getEnabled();
     }
 }
