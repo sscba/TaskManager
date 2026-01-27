@@ -28,10 +28,10 @@ public class Task {
     private String description;
 
     @Column(nullable = false)
-    private String status = "PENDING";
+    private String status = "PENDING"; // PENDING, IN_PROGRESS, COMPLETED
 
     @Column(nullable = false)
-    private String priority = "MEDIUM";
+    private String priority = "MEDIUM"; // LOW, MEDIUM, HIGH
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

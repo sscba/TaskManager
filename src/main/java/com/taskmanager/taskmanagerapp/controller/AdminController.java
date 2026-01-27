@@ -20,14 +20,14 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserDetails>> getAllUsers(){
+    public ResponseEntity<List<UserDetails>> getAllUsers() {
         List<UserDetails> users = userRepository.findAll();
         users.forEach(u -> u.setPassword("***"));
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/users/{id}")
-    public ResponseEntity<UserDetails> getUserById(@PathVariable Long id){
+    public ResponseEntity<UserDetails> getUserById(@PathVariable Long id) {
         return userRepository.findById(id)
                 .map(user -> {
                     user.setPassword("***");
@@ -37,8 +37,8 @@ public class AdminController {
     }
 
     @DeleteMapping("/users/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id){
-        if(!userRepository.existsById(id)){
+    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+        if (!userRepository.existsById(id)) {
             return ResponseEntity.notFound().build();
         }
         userRepository.deleteById(id);
@@ -46,9 +46,9 @@ public class AdminController {
     }
 
     @GetMapping("/users/role/{role}")
-    public ResponseEntity<List<UserDetails>> getUsersByRole(@PathVariable String role){
+    public ResponseEntity<List<UserDetails>> getUsersByRole(@PathVariable String role) {
         List<UserDetails> users = userRepository.findByRole(role.toUpperCase());
-        users.forEach(u->u.setPassword("***"));
+        users.forEach(u -> u.setPassword("***"));
         return ResponseEntity.ok(users);
     }
 }

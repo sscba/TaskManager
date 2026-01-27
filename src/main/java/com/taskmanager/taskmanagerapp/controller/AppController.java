@@ -12,7 +12,7 @@ import java.util.Optional;
 @RequestMapping("/api")
 public class AppController {
 
-    TaskManagerService managerService;
+    private final TaskManagerService managerService;
 
     public AppController(TaskManagerService managerService) {
         this.managerService = managerService;
