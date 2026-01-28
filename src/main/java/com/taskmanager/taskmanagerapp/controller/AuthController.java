@@ -3,15 +3,11 @@ package com.taskmanager.taskmanagerapp.controller;
 import com.taskmanager.taskmanagerapp.dto.AuthResponseDTO;
 import com.taskmanager.taskmanagerapp.dto.LoginRequestDTO;
 import com.taskmanager.taskmanagerapp.dto.RegisterRequestDTO;
-import com.taskmanager.taskmanagerapp.dto.UserRegistrationDTO;
-import com.taskmanager.taskmanagerapp.entity.UserDetails;
-import com.taskmanager.taskmanagerapp.repository.UserRepository;
 import com.taskmanager.taskmanagerapp.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,6 +28,5 @@ public class AuthController {
         AuthResponseDTO response = authService.login(request);
         return ResponseEntity.ok(response);
     }
-
 
 }

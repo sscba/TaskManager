@@ -2,7 +2,6 @@ package com.taskmanager.taskmanagerapp.repository;
 
 import com.taskmanager.taskmanagerapp.entity.Role;
 import com.taskmanager.taskmanagerapp.entity.User;
-import com.taskmanager.taskmanagerapp.entity.UserDetails;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

@@ -3,8 +3,6 @@ package com.taskmanager.taskmanagerapp.controller;
 import com.taskmanager.taskmanagerapp.dto.ApiResponseDTO;
 import com.taskmanager.taskmanagerapp.dto.UpdateUserRequestDTO;
 import com.taskmanager.taskmanagerapp.dto.UserResponseDTO;
-import com.taskmanager.taskmanagerapp.entity.UserDetails;
-import com.taskmanager.taskmanagerapp.repository.UserRepository;
 import com.taskmanager.taskmanagerapp.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
