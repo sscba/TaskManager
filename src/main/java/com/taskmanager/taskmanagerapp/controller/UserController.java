@@ -1,10 +1,11 @@
 package com.taskmanager.taskmanagerapp.controller;
 
-import com.taskmanager.taskmanagerapp.auth.security.CustomUserDetails;
-import com.taskmanager.taskmanagerapp.dto.ApiResponseDTO;
-import com.taskmanager.taskmanagerapp.dto.TaskRequestDTO;
-import com.taskmanager.taskmanagerapp.dto.TaskResponseDTO;
+import com.taskmanager.taskmanagerapp.security.CustomUserDetails;
+import com.taskmanager.taskmanagerapp.dto.response.ApiResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.request.TaskRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.response.TaskResponseDTO;
 import com.taskmanager.taskmanagerapp.service.TaskService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequestMapping("/api/user")
 @PreAuthorize("hasRole('USER')")
 @RequiredArgsConstructor
+@Tag(name = "User - Task Management", description = "Endpoints for users to manage their personal tasks")
 public class UserController {
 
     private final TaskService taskService;

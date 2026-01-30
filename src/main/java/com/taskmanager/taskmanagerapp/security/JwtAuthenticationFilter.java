@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.auth.security;
+package com.taskmanager.taskmanagerapp.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

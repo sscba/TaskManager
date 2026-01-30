@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.dto;
+package com.taskmanager.taskmanagerapp.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.auth.security;
+package com.taskmanager.taskmanagerapp.security;
 
 
 import io.jsonwebtoken.*;

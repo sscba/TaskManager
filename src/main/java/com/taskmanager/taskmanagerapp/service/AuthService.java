@@ -1,10 +1,10 @@
 package com.taskmanager.taskmanagerapp.service;
 
-import com.taskmanager.taskmanagerapp.auth.security.CustomUserDetails;
-import com.taskmanager.taskmanagerapp.auth.security.JwtUtil;
-import com.taskmanager.taskmanagerapp.dto.AuthResponseDTO;
-import com.taskmanager.taskmanagerapp.dto.LoginRequestDTO;
-import com.taskmanager.taskmanagerapp.dto.RegisterRequestDTO;
+import com.taskmanager.taskmanagerapp.security.CustomUserDetails;
+import com.taskmanager.taskmanagerapp.security.JwtUtil;
+import com.taskmanager.taskmanagerapp.dto.response.AuthResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.request.LoginRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.request.RegisterRequestDTO;
 import com.taskmanager.taskmanagerapp.entity.Role;
 import com.taskmanager.taskmanagerapp.entity.User;
 import com.taskmanager.taskmanagerapp.exception.DuplicateResourceException;

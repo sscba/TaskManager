@@ -1,9 +1,11 @@
 package com.taskmanager.taskmanagerapp.controller;
 
-import com.taskmanager.taskmanagerapp.dto.ApiResponseDTO;
-import com.taskmanager.taskmanagerapp.dto.UpdateUserRequestDTO;
-import com.taskmanager.taskmanagerapp.dto.UserResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.response.ApiResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.request.UpdateUserRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.response.UserResponseDTO;
 import com.taskmanager.taskmanagerapp.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,9 +18,10 @@ import java.util.List;
 @RequestMapping("/api/admin")
 @PreAuthorize("hasRole('ADMIN')")
 @RequiredArgsConstructor
+@Tag(name = "Admin - User Management", description = "Admin endpoints for managing users in the system")
 public class AdminController {
 
-    private UserService userService;
+    private final UserService userService;
 
     @GetMapping("/users")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers(){

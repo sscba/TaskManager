@@ -1,7 +1,7 @@
 package com.taskmanager.taskmanagerapp.service;
 
-import com.taskmanager.taskmanagerapp.dto.TaskRequestDTO;
-import com.taskmanager.taskmanagerapp.dto.TaskResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.request.TaskRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.response.TaskResponseDTO;
 import com.taskmanager.taskmanagerapp.entity.Priority;
 import com.taskmanager.taskmanagerapp.entity.Task;
 import com.taskmanager.taskmanagerapp.entity.TaskStatus;

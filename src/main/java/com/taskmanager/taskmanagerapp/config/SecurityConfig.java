@@ -1,8 +1,8 @@
 package com.taskmanager.taskmanagerapp.config;
 
 
-import com.taskmanager.taskmanagerapp.auth.security.CustomeUserDetailsService;
-import com.taskmanager.taskmanagerapp.auth.security.JwtAuthenticationFilter;
+import com.taskmanager.taskmanagerapp.security.CustomeUserDetailsService;
+import com.taskmanager.taskmanagerapp.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,12 +32,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer
-                ::disable)
+                        ::disable)
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**","/api/auth/register").permitAll()
+                        .requestMatchers("/h2-console/**","/api/auth/**","/error"
+                                )
+
+                        .permitAll()
+                        // Swagger/OpenAPI endpoints - IMPORTANT!
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/user/**").hasRole("USER")
                         .anyRequest().authenticated()

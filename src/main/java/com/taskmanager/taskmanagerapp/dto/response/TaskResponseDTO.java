@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.dto;
+package com.taskmanager.taskmanagerapp.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,13 +11,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserResponseDTO {
+public class TaskResponseDTO {
     private Long id;
+    private String title;
+    private String description;
+    private String status;
+    private String priority;
+    private Long userId;
     private String username;
-    private String email;
-    private String fullName;
-    private String role;
-    private Boolean enabled;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

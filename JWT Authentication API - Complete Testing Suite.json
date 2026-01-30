@@ -1,0 +1,851 @@
+{
+  "info": {
+    "name": "JWT Authentication API - Complete Testing Suite",
+    "description": "Comprehensive Postman collection for testing JWT-based authentication with role-based access control",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "task_id",
+      "value": "1",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "2",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication Flow",
+      "item": [
+        {
+          "name": "Register New User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.collectionVariables.set('user_token', jsonData.token);",
+                  "    console.log('User Token saved:', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"alice123\",\n  \"email\": \"alice@example.com\",\n  \"fullName\": \"Alice Johnson\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Register a new user account. Returns JWT token automatically."
+          },
+          "response": []
+        },
+        {
+          "name": "Login as User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.collectionVariables.set('user_token', jsonData.token);",
+                  "    console.log('User Token saved:', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"user123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with existing user credentials. Token is automatically saved to collection variables."
+          },
+          "response": []
+        },
+        {
+          "name": "Login as Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', jsonData.token);",
+                  "    pm.collectionVariables.set('admin_token', jsonData.token);",
+                  "    console.log('Admin Token saved:', jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login as admin. Token is automatically saved to collection variables."
+          },
+          "response": []
+        }
+      ],
+      "description": "Authentication endpoints - Register and Login"
+    },
+    {
+      "name": "2. Admin Endpoints",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"]
+            },
+            "description": "Fetch all registered users (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{user_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{user_id}}"]
+            },
+            "description": "Get specific user by ID (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users By Role - USER",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/role/USER",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "role", "USER"]
+            },
+            "description": "Get all users with USER role (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Users By Role - ADMIN",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/role/ADMIN",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "role", "ADMIN"]
+            },
+            "description": "Get all users with ADMIN role (Admin only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newemail@example.com\",\n  \"fullName\": \"Updated Full Name\",\n  \"password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{user_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{user_id}}"]
+            },
+            "description": "Update user details (Admin only). All fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users/{{user_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users", "{{user_id}}"]
+            },
+            "description": "Delete a user by ID (Admin only)"
+          },
+          "response": []
+        }
+      ],
+      "description": "Admin-only endpoints for user management"
+    },
+    {
+      "name": "3. User Endpoints - Tasks",
+      "item": [
+        {
+          "name": "Get All My Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Get all tasks for the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks/{{task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks", "{{task_id}}"]
+            },
+            "description": "Get a specific task by ID"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tasks By Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks/status/PENDING",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks", "status", "PENDING"]
+            },
+            "description": "Filter tasks by status"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tasks By Priority",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks/priority/HIGH",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks", "priority", "HIGH"]
+            },
+            "description": "Filter tasks by priority"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Task Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks/count",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks", "count"]
+            },
+            "description": "Get total count of tasks"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Task - High Priority",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('task_id', jsonData.id);",
+                  "    console.log('Task ID saved:', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Complete Spring Boot JWT Implementation\",\n  \"description\": \"Implement JWT authentication with role-based access control\",\n  \"status\": \"IN_PROGRESS\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Create a new task with HIGH priority"
+          },
+          "response": []
+        },
+        {
+          "name": "Create Task - Medium Priority",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Write API Documentation\",\n  \"description\": \"Document all endpoints\",\n  \"status\": \"PENDING\",\n  \"priority\": \"MEDIUM\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Create a task with MEDIUM priority"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"COMPLETED\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks/{{task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks", "{{task_id}}"]
+            },
+            "description": "Update task status"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks/{{task_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks", "{{task_id}}"]
+            },
+            "description": "Delete a task by ID"
+          },
+          "response": []
+        }
+      ],
+      "description": "User endpoints for task management"
+    },
+    {
+      "name": "4. Security Tests",
+      "item": [
+        {
+          "name": "No Token - Should Fail (401)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Should return 401 Unauthorized"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Token - Should Fail (401)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid.token.here",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Should return 401 Unauthorized"
+          },
+          "response": []
+        },
+        {
+          "name": "USER tries ADMIN endpoint - Should Fail (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "admin", "users"]
+            },
+            "description": "Should return 403 Forbidden"
+          },
+          "response": []
+        },
+        {
+          "name": "ADMIN tries USER endpoint - Should Fail (403)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Should return 403 Forbidden"
+          },
+          "response": []
+        },
+        {
+          "name": "Duplicate Username - Should Fail (409)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"password123\",\n  \"email\": \"different@example.com\",\n  \"fullName\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Should return 409 Conflict"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Email - Should Fail (400)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"email\": \"notanemail\",\n  \"fullName\": \"Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Should return 400 Bad Request"
+          },
+          "response": []
+        },
+        {
+          "name": "Wrong Password - Should Fail (401)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Should return 401 Unauthorized"
+          },
+          "response": []
+        },
+        {
+          "name": "Missing Required Fields - Should Fail (400)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"testuser\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Should return 400 Bad Request - Missing required fields (password, email, fullName)"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Task Status - Should Fail (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Task\",\n  \"status\": \"INVALID_STATUS\",\n  \"priority\": \"HIGH\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Should return 400 Bad Request - Invalid status value"
+          },
+          "response": []
+        },
+        {
+          "name": "Invalid Task Priority - Should Fail (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Task\",\n  \"status\": \"PENDING\",\n  \"priority\": \"INVALID_PRIORITY\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Should return 400 Bad Request - Invalid priority value"
+          },
+          "response": []
+        },
+        {
+          "name": "Task Title Too Short - Should Fail (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AB\",\n  \"description\": \"This title is too short\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/user/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "user", "tasks"]
+            },
+            "description": "Should return 400 Bad Request - Title must be at least 3 characters"
+          },
+          "response": []
+        },
+        {
+          "name": "Wrong Login Credentials - Should Fail (401)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"wrongpassword\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Should return 401 Unauthorized - Invalid credentials"
+          },
+          "response": []
+        }
+      ],
+      "description": "Security and error handling tests"
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 package com.taskmanager.taskmanagerapp.service;
 
-import com.taskmanager.taskmanagerapp.dto.UpdateUserRequestDTO;
-import com.taskmanager.taskmanagerapp.dto.UserResponseDTO;
+import com.taskmanager.taskmanagerapp.dto.request.UpdateUserRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.response.UserResponseDTO;
 import com.taskmanager.taskmanagerapp.entity.Role;
 import com.taskmanager.taskmanagerapp.entity.User;
 import com.taskmanager.taskmanagerapp.exception.DuplicateResourceException;

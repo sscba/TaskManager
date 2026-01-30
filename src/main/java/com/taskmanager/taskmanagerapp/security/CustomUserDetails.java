@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.auth.security;
+package com.taskmanager.taskmanagerapp.security;
 
 import com.taskmanager.taskmanagerapp.entity.User;
 import lombok.AllArgsConstructor;
