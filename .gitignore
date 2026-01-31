@@ -34,8 +34,8 @@ out/
 .vscode/
 
 # Environment variables
-.env
-.env.local
+*.env
+*.env.local
 .env.*.local
 
 # Application properties with secrets
