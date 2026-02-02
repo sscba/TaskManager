@@ -1,5 +1,6 @@
 package com.taskmanager.taskmanagerapp.service;
 
+import com.taskmanager.taskmanagerapp.entity.RefreshToken;
 import com.taskmanager.taskmanagerapp.security.CustomUserDetails;
 import com.taskmanager.taskmanagerapp.security.JwtUtil;
 import com.taskmanager.taskmanagerapp.dto.response.AuthResponseDTO;
@@ -27,6 +28,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenService refreshTokenService;
 
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
@@ -64,9 +66,11 @@ public class AuthService {
         );
 
         String token = jwtUtil.generateToken(authentication);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser.getId());
 
         return AuthResponseDTO.builder()
                 .token(token)
+                .refreshToken(refreshToken.getToken())
                 .type("Bearer")
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
@@ -92,10 +96,13 @@ public class AuthService {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
 
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
         log.info("User logged in successfully: {}", user.getUsername());
 
         return AuthResponseDTO.builder()
                 .token(token)
+                .refreshToken(refreshToken.getToken())
                 .type("Bearer")
                 .id(user.getId())
                 .username(user.getUsername())
@@ -103,5 +110,33 @@ public class AuthService {
                 .fullName(user.getFullName())
                 .role(user.getRole().name())
                 .build();
+    }
+
+    @Transactional
+    public AuthResponseDTO refreshToken(String refreshTokenStr){
+        RefreshToken refreshToken = refreshTokenService.findByToken(refreshTokenStr);
+        refreshTokenService.verifyExpiration(refreshToken);
+
+        User user = refreshToken.getUser();
+        String newAccessToken = jwtUtil.generateTokenFromUsername(user.getUsername());
+
+        return AuthResponseDTO.builder()
+                .token(newAccessToken)
+                .refreshToken(refreshTokenStr)
+                .type("Bearer")
+                .id(user.getId())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(user.getRole().name())
+                .build();
+    }
+
+    @Transactional
+    public void logout(Long userId){
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found!"));
+        refreshTokenService.deleteByUserId(user.getId());
+        log.info("User logged out: {}",user.getUsername());
     }
 }

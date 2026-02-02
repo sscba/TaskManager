@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class AuthResponseDTO {
     private String token;
+    private String refreshToken;
     private String type = "Bearer";
     private Long id;
     private String username;
