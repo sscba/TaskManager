@@ -26,6 +26,7 @@ public class DataInitializer {
                         .fullName("System Administrator")
                         .role(Role.ADMIN)
                         .enabled(true)
+                        .emailVerified(true)
                         .build();
                 userRepository.save(admin);
 
@@ -36,6 +37,7 @@ public class DataInitializer {
                         .fullName("Regular User")
                         .role(Role.USER)
                         .enabled(true)
+                        .emailVerified(true)
                         .build();
                 userRepository.save(user);
 

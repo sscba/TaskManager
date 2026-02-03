@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanagerapp.service;
 
 import com.taskmanager.taskmanagerapp.entity.RefreshToken;
+import com.taskmanager.taskmanagerapp.exception.UnauthorizedException;
 import com.taskmanager.taskmanagerapp.security.CustomUserDetails;
 import com.taskmanager.taskmanagerapp.security.JwtUtil;
 import com.taskmanager.taskmanagerapp.dto.response.AuthResponseDTO;
@@ -29,6 +30,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
@@ -55,6 +57,9 @@ public class AuthService {
                 .build();
 
         User savedUser = userRepository.save(user);
+
+        emailVerificationService.sendVerificationEmail(savedUser);
+
         log.info("User registered successfully: {}", savedUser.getUsername());
 
         // Auto-login after registration
@@ -95,6 +100,11 @@ public class AuthService {
 
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
+
+        // ── Block login if email is not verified ──
+        if (!user.getEmailVerified()) {
+            throw new UnauthorizedException("Email not verified. Please check your inbox or resend verification.");
+        }
 
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
 

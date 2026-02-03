@@ -55,4 +55,11 @@ public class User {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
 
+    // ── NEW FIELD: tracks whether email has been verified ──
+    // Defaults to false. Flipped to true once user clicks
+    // the verification link in their email.
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean emailVerified = false;
+
 }
