@@ -1,13 +1,20 @@
 package com.taskmanager.taskmanagerapp.controller;
 
+import com.taskmanager.taskmanagerapp.dto.request.TaskFilterDTO;
+import com.taskmanager.taskmanagerapp.dto.response.PaginatedResponseDTO;
 import com.taskmanager.taskmanagerapp.security.CustomUserDetails;
 import com.taskmanager.taskmanagerapp.dto.response.ApiResponseDTO;
 import com.taskmanager.taskmanagerapp.dto.request.TaskRequestDTO;
 import com.taskmanager.taskmanagerapp.dto.response.TaskResponseDTO;
 import com.taskmanager.taskmanagerapp.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,10 +33,12 @@ public class UserController {
     private final TaskService taskService;
 
     @GetMapping("/tasks")
-    public ResponseEntity<List<TaskResponseDTO>> getAllTasks(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    @Operation(summary = "Get all tasks with pagination and sorting")
+    public ResponseEntity<PaginatedResponseDTO<TaskResponseDTO>> getAllTasks(
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Long userId = userDetails.getUser().getId();
-        List<TaskResponseDTO> tasks = taskService.getAllTasksForUser(userId);
+        PaginatedResponseDTO<TaskResponseDTO> tasks = taskService.getAllTasksForUser(userId, pageable);
         return ResponseEntity.ok(tasks);
     }
 
@@ -43,21 +52,52 @@ public class UserController {
     }
 
     @GetMapping("/tasks/status/{status}")
-    public ResponseEntity<List<TaskResponseDTO>> getTasksByStatus(
-            @PathVariable String status,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    @Operation(summary = "Get tasks by status with pagination")
+    public ResponseEntity<PaginatedResponseDTO<TaskResponseDTO>> getTasksByStatus(
+            @Parameter(description = "Status: PENDING, IN_PROGRESS, COMPLETED, CANCELLED") @PathVariable String status,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Long userId = userDetails.getUser().getId();
-        List<TaskResponseDTO> tasks = taskService.getTasksByStatus(userId, status);
+        PaginatedResponseDTO<TaskResponseDTO> tasks = taskService.getTasksByStatus(userId, status, pageable);
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/tasks/priority/{priority}")
-    public ResponseEntity<List<TaskResponseDTO>> getTasksByPriority(
-            @PathVariable String priority,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+    @Operation(summary = "Get tasks by priority with pagination")
+    public ResponseEntity<PaginatedResponseDTO<TaskResponseDTO>> getTasksByPriority(
+            @Parameter(description = "Priority: LOW, MEDIUM, HIGH, URGENT") @PathVariable String priority,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Long userId = userDetails.getUser().getId();
-        List<TaskResponseDTO> tasks = taskService.getTasksByPriority(userId, priority);
+        PaginatedResponseDTO<TaskResponseDTO> tasks = taskService.getTasksByPriority(userId, priority,pageable
+        );
         return ResponseEntity.ok(tasks);
+    }
+
+    // search tasks by keyword
+    @GetMapping("/tasks/search")
+    @Operation(summary = "Search tasks by keyword", description = "Searches in title and description")
+    public ResponseEntity<PaginatedResponseDTO<TaskResponseDTO>> searchTasks(
+            @Parameter(description = "Search keyword", example = "spring") @RequestParam String keyword,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Long userId = userDetails.getUser().getId();
+        PaginatedResponseDTO<TaskResponseDTO> tasks = taskService.searchTasks(userId, keyword, pageable);
+        return ResponseEntity.ok(tasks);
+    }
+
+    // New endpoint: advanced filter combining keyword + status + priority
+    @GetMapping("/tasks/filter")
+    @Operation(summary = "Advanced filter tasks", description = "Combine keyword, status, and priority filters. All params are optional.")
+    public ResponseEntity<PaginatedResponseDTO<TaskResponseDTO>> filterTasks(
+            @Parameter(description = "Search keyword") @RequestParam(required = false) String keyword,
+            @Parameter(description = "Task status") @RequestParam(required = false) String status,
+            @Parameter(description = "Task priority") @RequestParam(required = false) String priority,
+            @Parameter(hidden = true) @AuthenticationPrincipal CustomUserDetails userDetails,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        Long userId = userDetails.getUser().getId();
+        PaginatedResponseDTO<TaskResponseDTO> filteredTasks = taskService.filterTasks(userId,new TaskFilterDTO(keyword,status,priority),pageable);
+        return ResponseEntity.ok(filteredTasks);
     }
 
     @GetMapping("/tasks/count")

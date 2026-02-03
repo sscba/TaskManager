@@ -2,12 +2,18 @@ package com.taskmanager.taskmanagerapp.controller;
 
 import com.taskmanager.taskmanagerapp.dto.response.ApiResponseDTO;
 import com.taskmanager.taskmanagerapp.dto.request.UpdateUserRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.response.PaginatedResponseDTO;
 import com.taskmanager.taskmanagerapp.dto.response.UserResponseDTO;
 import com.taskmanager.taskmanagerapp.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +30,8 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers(){
-        List<UserResponseDTO> response = userService.getAllUsers();
+    public ResponseEntity<PaginatedResponseDTO<UserResponseDTO>> getAllUsers(@PageableDefault(size = 10,sort = "createdAt", direction = Sort.Direction.DESC)Pageable pageable){
+        PaginatedResponseDTO<UserResponseDTO> response = userService.getAllUsers(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -36,10 +42,25 @@ public class AdminController {
     }
 
     @GetMapping("/users/role/{role}")
-    public ResponseEntity<List<UserResponseDTO>> getUserById(@PathVariable String role){
-        List<UserResponseDTO> response = userService.getUsersByRole(role);
-        return ResponseEntity.ok(response);
+    @Operation(summary = "Get users by role with pagination")
+    public ResponseEntity<PaginatedResponseDTO<UserResponseDTO>> getUsersByRole(
+            @Parameter(description = "Role: USER or ADMIN", example = "USER") @PathVariable String role,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponseDTO<UserResponseDTO> users = userService.getUsersByRole(role, pageable);
+        return ResponseEntity.ok(users);
     }
+
+    // search users by keyword
+    @GetMapping("/users/search")
+    @Operation(summary = "Search users by keyword", description = "Searches username, fullName, and email")
+    public ResponseEntity<PaginatedResponseDTO<UserResponseDTO>> searchUsers(
+            @Parameter(description = "Search keyword", example = "john") @RequestParam String keyword,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        PaginatedResponseDTO<UserResponseDTO> users = userService.searchUsers(keyword, pageable);
+        return ResponseEntity.ok(users);
+    }
+
+
 
     @PutMapping("/users/{id}")
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequestDTO request){

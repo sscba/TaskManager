@@ -1,6 +1,7 @@
 package com.taskmanager.taskmanagerapp.service;
 
 import com.taskmanager.taskmanagerapp.dto.request.UpdateUserRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.response.PaginatedResponseDTO;
 import com.taskmanager.taskmanagerapp.dto.response.UserResponseDTO;
 import com.taskmanager.taskmanagerapp.entity.Role;
 import com.taskmanager.taskmanagerapp.entity.User;
@@ -9,6 +10,8 @@ import com.taskmanager.taskmanagerapp.exception.ResourceNotFoundException;
 import com.taskmanager.taskmanagerapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,11 +28,12 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public List<UserResponseDTO> getAllUsers() {
-        log.info("Fetching all users");
-        return userRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public PaginatedResponseDTO<UserResponseDTO> getAllUsers(Pageable pageable) {
+        log.info("Fetching all users, page: {}, size: {}", pageable.getPageNumber(), pageable.getPageSize());
+        Page<User> usersPage = userRepository.findAll(pageable);
+        // map() transforms every User entity inside the Page into a UserResponseDTO
+        Page<UserResponseDTO> dtosPage = usersPage.map(this::convertToDTO);
+        return PaginatedResponseDTO.of(dtosPage);
     }
 
     @Transactional(readOnly = true)
@@ -41,16 +45,24 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserResponseDTO> getUsersByRole(String role) {
-        log.info("Fetching users by role: {}", role);
+    public PaginatedResponseDTO<UserResponseDTO> getUsersByRole(String role,Pageable pageable) {
+        log.info("Fetching users by role: {}, page: {}", role, pageable.getPageNumber());
         try {
             Role roleEnum = Role.valueOf(role.toUpperCase());
-            return userRepository.findByRole(roleEnum).stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
+            Page<User> usersPage = userRepository.findByRole(roleEnum, pageable);
+            Page<UserResponseDTO> dtosPage = usersPage.map(this::convertToDTO);
+            return PaginatedResponseDTO.of(dtosPage);
         } catch (IllegalArgumentException e) {
             throw new ResourceNotFoundException("Invalid role: " + role);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public PaginatedResponseDTO<UserResponseDTO> searchUsers(String keyword, Pageable pageable) {
+        log.info("Searching users with keyword: {}", keyword);
+        Page<User> usersPage = userRepository.searchUsers(keyword, pageable);
+        Page<UserResponseDTO> dtosPage = usersPage.map(this::convertToDTO);
+        return PaginatedResponseDTO.of(dtosPage);
     }
 
     @Transactional

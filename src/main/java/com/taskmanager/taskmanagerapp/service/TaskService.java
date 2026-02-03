@@ -1,6 +1,8 @@
 package com.taskmanager.taskmanagerapp.service;
 
+import com.taskmanager.taskmanagerapp.dto.request.TaskFilterDTO;
 import com.taskmanager.taskmanagerapp.dto.request.TaskRequestDTO;
+import com.taskmanager.taskmanagerapp.dto.response.PaginatedResponseDTO;
 import com.taskmanager.taskmanagerapp.dto.response.TaskResponseDTO;
 import com.taskmanager.taskmanagerapp.entity.Priority;
 import com.taskmanager.taskmanagerapp.entity.Task;
@@ -12,6 +14,8 @@ import com.taskmanager.taskmanagerapp.repository.TaskRepository;
 import com.taskmanager.taskmanagerapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,11 +31,11 @@ public class TaskService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDTO> getAllTasksForUser(Long userId) {
-        log.info("Fetching all tasks for user: {}", userId);
-        return taskRepository.findByUserId(userId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public PaginatedResponseDTO<TaskResponseDTO> getAllTasksForUser(Long userId, Pageable pageable) {
+        log.info("Fetching tasks for user: {}, page: {}, size: {}", userId, pageable.getPageNumber(), pageable.getPageSize());
+        Page<Task> tasksPage = taskRepository.findByUserId(userId, pageable);
+        Page<TaskResponseDTO> dtosPage = tasksPage.map(this::convertToDTO);
+        return PaginatedResponseDTO.of(dtosPage);
     }
 
     @Transactional(readOnly = true)
@@ -47,32 +51,54 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDTO> getTasksByStatus(Long userId, String status) {
+    public PaginatedResponseDTO<TaskResponseDTO> getTasksByStatus(Long userId, String status, Pageable pageable) {
         log.info("Fetching tasks by status {} for user {}", status, userId);
-
         try {
             TaskStatus taskStatus = TaskStatus.valueOf(status.toUpperCase());
-            return taskRepository.findByUserIdAndStatus(userId, taskStatus).stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
+            Page<Task> tasksPage = taskRepository.findByUserIdAndStatus(userId, taskStatus, pageable);
+            Page<TaskResponseDTO> dtosPage = tasksPage.map(this::convertToDTO);
+            return PaginatedResponseDTO.of(dtosPage);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid status: " + status);
         }
     }
 
     @Transactional(readOnly = true)
-    public List<TaskResponseDTO> getTasksByPriority(Long userId, String priority) {
+    public PaginatedResponseDTO<TaskResponseDTO> getTasksByPriority(Long userId, String priority, Pageable pageable) {
         log.info("Fetching tasks by priority {} for user {}", priority, userId);
-
         try {
             Priority taskPriority = Priority.valueOf(priority.toUpperCase());
-            return taskRepository.findByUserIdAndPriority(userId, taskPriority).stream()
-                    .map(this::convertToDTO)
-                    .collect(Collectors.toList());
+            Page<Task> tasksPage = taskRepository.findByUserIdAndPriority(userId, taskPriority, pageable);
+            Page<TaskResponseDTO> dtosPage = tasksPage.map(this::convertToDTO);
+            return PaginatedResponseDTO.of(dtosPage);
         } catch (IllegalArgumentException e) {
             throw new BadRequestException("Invalid priority: " + priority);
         }
     }
+
+    // Advanced filter method: handles keyword + status + priority + pagination all at once
+    @Transactional(readOnly = true)
+    public PaginatedResponseDTO<TaskResponseDTO> filterTasks(Long userId, TaskFilterDTO filter, Pageable pageable) {
+        log.info("Filtering tasks for user: {}, filters: {}", userId, filter);
+
+        TaskStatus status = parseStatus(filter.getStatus());
+        Priority priority = parsePriority(filter.getPriority());
+
+        Page<Task> tasksPage = taskRepository.findByUserIdWithFilters(
+                userId, status, priority, filter.getKeyword(), pageable);
+        Page<TaskResponseDTO> dtosPage = tasksPage.map(this::convertToDTO);
+        return PaginatedResponseDTO.of(dtosPage);
+    }
+
+    @Transactional(readOnly = true)
+    public PaginatedResponseDTO<TaskResponseDTO> searchTasks(Long userId, String keyword, Pageable pageable) {
+        log.info("Searching tasks with keyword: {} for user: {}", keyword, userId);
+        Page<Task> tasksPage = taskRepository.searchTasksByUser(userId, keyword, pageable);
+        Page<TaskResponseDTO> dtosPage = tasksPage.map(this::convertToDTO);
+        return PaginatedResponseDTO.of(dtosPage);
+    }
+
+
 
     @Transactional
     public TaskResponseDTO createTask(TaskRequestDTO request, Long userId) {
