@@ -1,0 +1,753 @@
+{
+  "info": {
+    "_postman_id": "7081c48b-4ba9-4eea-8dc7-209361f22625",
+    "name": "Email Verification API Tests",
+    "description": "Test all email verification endpoints and flows",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "47847996",
+    "_collection_link": "https://go.postman.co/collection/47847996-7081c48b-4ba9-4eea-8dc7-209361f22625?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "1. Login Pre-Verified Users",
+      "item": [
+        {
+          "name": "Login as Admin (Pre-Verified)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('jwt_token', pm.response.json().token);",
+                  "    pm.collectionVariables.set('admin_token', pm.response.json().token);",
+                  "    console.log('✅ Admin logged in. emailVerified:', pm.response.json().emailVerified);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Pre-verified user — login should succeed immediately"
+          },
+          "response": []
+        },
+        {
+          "name": "Login as User (Pre-Verified)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    pm.collectionVariables.set('jwt_token', pm.response.json().token);",
+                  "    pm.collectionVariables.set('user_token', pm.response.json().token);",
+                  "    console.log('✅ User logged in. emailVerified:', pm.response.json().emailVerified);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"user\",\n  \"password\": \"user123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Register New Unverified User",
+      "item": [
+        {
+          "name": "Register - New User (triggers verification email)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var data = pm.response.json();",
+                  "    pm.collectionVariables.set('jwt_token', data.token);",
+                  "    pm.collectionVariables.set('new_user_token', data.token);",
+                  "    console.log('✅ Registered. emailVerified:', data.emailVerified);",
+                  "    console.log('📧 Check inbox for verification email');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"password\": \"newpass123\",\n  \"email\": \"{{new_user_email}}\",\n  \"fullName\": \"New Test User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Update new_user_email variable to YOUR real Gmail before running. A verification email will arrive."
+          },
+          "response": []
+        },
+        {
+          "name": "Try Login Before Verification (Should Fail 401)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"password\": \"newpass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Expected 401 — email not verified yet"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Check Verification Status",
+      "item": [
+        {
+          "name": "Check Status - Unverified Email",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verification-status?email={{new_user_email}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verification-status"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{new_user_email}}"
+                }
+              ]
+            },
+            "description": "Expected: success=false, message='Email is not yet verified'"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Status - Pre-Verified Email (admin)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verification-status?email=admin@example.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verification-status"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "admin@example.com"
+                }
+              ]
+            },
+            "description": "Expected: success=true, message='Email is verified'"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Status - Non-Existent Email",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verification-status?email=ghost@nowhere.com",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verification-status"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "ghost@nowhere.com"
+                }
+              ]
+            },
+            "description": "Expected: success=false"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Verify Email (Manual Token Step)",
+      "item": [
+        {
+          "name": "Verify Email - Using Token from Inbox",
+          "event": [
+            {
+              "listen": "preRequest",
+              "script": {
+                "exec": [
+                  "// IMPORTANT:",
+                  "// 1. Open your Gmail inbox",
+                  "// 2. Find the 'Verify Your Email' email",
+                  "// 3. Copy the token from the link:",
+                  "//    http://localhost:8083/api/auth/verify-email?token=COPY-THIS-PART",
+                  "// 4. Paste into the 'verification_token' collection variable",
+                  "console.log('📧 Paste your token into verification_token variable before sending!');"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email?token={{verification_token}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{verification_token}}"
+                }
+              ]
+            },
+            "description": "Paste token from email into the 'verification_token' collection variable first"
+          },
+          "response": []
+        },
+        {
+          "name": "Check Status After Verification",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verification-status?email={{new_user_email}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verification-status"
+              ],
+              "query": [
+                {
+                  "key": "email",
+                  "value": "{{new_user_email}}"
+                }
+              ]
+            },
+            "description": "Expected: success=true after verification"
+          },
+          "response": []
+        },
+        {
+          "name": "Login After Verification (Should Succeed 200)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    console.log('✅ Login successful after verification!');",
+                  "    console.log('emailVerified:', pm.response.json().emailVerified);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  ""
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"newuser\",\n  \"password\": \"newpass123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Expected 200 — email is now verified"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout user",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Resend Verification Flow",
+      "item": [
+        {
+          "name": "Resend - Valid Unverified Email",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{new_user_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "resend-verification"
+              ]
+            },
+            "description": "Sends a fresh verification email. Old token is invalidated."
+          },
+          "response": []
+        },
+        {
+          "name": "Resend - Already Verified Email (Should Fail 400)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "resend-verification"
+              ]
+            },
+            "description": "Expected 400 — already verified"
+          },
+          "response": []
+        },
+        {
+          "name": "Resend - Non-Existent Email (Should Fail 404)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ghost@nowhere.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "resend-verification"
+              ]
+            },
+            "description": "Expected 404 — no account with that email"
+          },
+          "response": []
+        },
+        {
+          "name": "Resend - Invalid Email Format (Should Fail 400)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"notanemail\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-verification",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "resend-verification"
+              ]
+            },
+            "description": "Expected 400 — validation failure"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Edge Cases & Error Scenarios",
+      "item": [
+        {
+          "name": "Verify - Fake Token (Should Fail 400)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email?token=completely-fake-token-12345",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "completely-fake-token-12345"
+                }
+              ]
+            },
+            "description": "Expected 400 — token doesn't exist in DB"
+          },
+          "response": []
+        },
+        {
+          "name": "Verify - Already Used Token (Should Fail 400)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/verify-email?token={{verification_token}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "verify-email"
+              ],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{verification_token}}"
+                }
+              ]
+            },
+            "description": "Run AFTER successful verification. Expected 400 — token already used"
+          },
+          "response": []
+        },
+        {
+          "name": "Register - Duplicate Email (Should Fail 409)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"anotheruser\",\n  \"password\": \"pass123456\",\n  \"email\": \"admin@example.com\",\n  \"fullName\": \"Another User\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Expected 409 — email already taken"
+          },
+          "response": []
+        },
+        {
+          "name": "Register - Missing Fields (Should Fail 400)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"onlyuser\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Expected 400 — missing password, email, fullName"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": ""
+    },
+    {
+      "key": "user_token",
+      "value": ""
+    },
+    {
+      "key": "new_user_token",
+      "value": ""
+    },
+    {
+      "key": "verification_token",
+      "value": ""
+    },
+    {
+      "key": "new_user_email",
+      "value": "newuser@gmail.com"
+    }
+  ]
+}

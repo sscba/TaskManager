@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.emailverification;
+package com.taskmanager.taskmanagerapp.service;
 
 
 import com.taskmanager.taskmanagerapp.entity.EmailVerificationToken;
@@ -8,8 +8,6 @@ import com.taskmanager.taskmanagerapp.exception.BadRequestException;
 import com.taskmanager.taskmanagerapp.exception.ResourceNotFoundException;
 import com.taskmanager.taskmanagerapp.repository.EmailVerificationTokenRepository;
 import com.taskmanager.taskmanagerapp.repository.UserRepository;
-import com.taskmanager.taskmanagerapp.service.EmailService;
-import com.taskmanager.taskmanagerapp.service.EmailVerificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
