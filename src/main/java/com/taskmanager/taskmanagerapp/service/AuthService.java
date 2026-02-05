@@ -71,11 +71,9 @@ public class AuthService {
         );
 
         String token = jwtUtil.generateToken(authentication);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(savedUser.getId());
 
         return AuthResponseDTO.builder()
                 .token(token)
-                .refreshToken(refreshToken.getToken())
                 .type("Bearer")
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
