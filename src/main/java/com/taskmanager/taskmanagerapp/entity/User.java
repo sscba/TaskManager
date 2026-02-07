@@ -62,4 +62,67 @@ public class User {
     @Builder.Default
     private Boolean emailVerified = false;
 
+    // Tracks consecutive failed login attempts
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer failedLoginAttempts = 0;
+
+    // When the account got locked (null = not locked)
+    @Column
+    private LocalDateTime lockedAt;
+
+    // When the lockout expires (null = not locked)
+    @Column
+    private LocalDateTime lockExpiresAt;
+
+    // General account lock flag (for manual admin locks too)
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean accountNonLocked = true;
+
+    // Check if account is currently locked due to failed attempts
+    public boolean isAccountLocked() {
+        // If never locked, obviously not locked
+        if (lockExpiresAt == null) {
+            return false;
+        }
+
+        // If lockout expired, auto-unlock
+        if (LocalDateTime.now().isAfter(lockExpiresAt)) {
+            unlockAccount();
+            return false;
+        }
+
+        // Still within lockout window
+        return !accountNonLocked;
+    }
+
+    // Increment failed attempt counter
+    public void incrementFailedAttempts() {
+        this.failedLoginAttempts++;
+    }
+
+    // Lock the account for a specific duration
+    public void lockAccount(int durationMinutes) {
+        this.accountNonLocked = false;
+        this.lockedAt = LocalDateTime.now();
+        this.lockExpiresAt = LocalDateTime.now().plusMinutes(durationMinutes);
+    }
+
+    // Reset account after successful login or manual unlock
+    public void unlockAccount() {
+        this.failedLoginAttempts = 0;
+        this.accountNonLocked = true;
+        this.lockedAt = null;
+        this.lockExpiresAt = null;
+    }
+
+    // Get remaining lockout time in minutes
+    public Long getRemainingLockoutMinutes() {
+        if (lockExpiresAt == null || LocalDateTime.now().isAfter(lockExpiresAt)) {
+            return 0L;
+        }
+        return java.time.Duration.between(LocalDateTime.now(), lockExpiresAt).toMinutes();
+    }
+
 }

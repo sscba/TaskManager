@@ -27,6 +27,8 @@ public class DataInitializer {
                         .role(Role.ADMIN)
                         .enabled(true)
                         .emailVerified(true)
+                        .failedLoginAttempts(0)       // ← initialize
+                        .accountNonLocked(true)
                         .build();
                 userRepository.save(admin);
 
@@ -38,6 +40,8 @@ public class DataInitializer {
                         .role(Role.USER)
                         .enabled(true)
                         .emailVerified(true)
+                        .failedLoginAttempts(0)       // ← initialize
+                        .accountNonLocked(true)
                         .build();
                 userRepository.save(user);
 

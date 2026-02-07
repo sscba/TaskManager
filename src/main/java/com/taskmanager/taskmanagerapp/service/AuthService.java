@@ -14,6 +14,7 @@ import com.taskmanager.taskmanagerapp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +32,7 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenService refreshTokenService;
     private final EmailVerificationService emailVerificationService;
+    private final AccountLockoutService accountLockoutService;
 
     @Transactional
     public AuthResponseDTO register(RegisterRequestDTO request) {
@@ -87,37 +89,55 @@ public class AuthService {
     public AuthResponseDTO login(LoginRequestDTO request) {
         log.info("User login attempt: {}", request.getUsername());
 
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+        accountLockoutService.checkAccountLockStatus(request.getUsername());
+        try{
 
-        String token = jwtUtil.generateToken(authentication);
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getUsername(),
+                            request.getPassword()
+                    )
+            );
 
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        User user = userDetails.getUser();
+            String token = jwtUtil.generateToken(authentication);
 
-        // ── Block login if email is not verified ──
-        if (!user.getEmailVerified()) {
-            throw new UnauthorizedException("Email not verified. Please check your inbox or resend verification.");
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+
+            // ── Block login if email is not verified ──
+            if (!user.getEmailVerified()) {
+                throw new UnauthorizedException("Email not verified. Please check your inbox or resend verification.");
+            }
+
+            accountLockoutService.resetFailedAttempts(request.getUsername());
+            RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+            log.info("User logged in successfully: {}", user.getUsername());
+
+            return AuthResponseDTO.builder()
+                    .token(token)
+                    .refreshToken(refreshToken.getToken())
+                    .type("Bearer")
+                    .id(user.getId())
+                    .username(user.getUsername())
+                    .email(user.getEmail())
+                    .fullName(user.getFullName())
+                    .role(user.getRole().name())
+                    .build();
+        }catch (BadCredentialsException e) {
+            // STEP 5: Failed login - record attempt and potentially lock account
+            boolean wasLocked = accountLockoutService.recordFailedLoginAttempt(request.getUsername());
+
+            if (wasLocked) {
+                throw new UnauthorizedException(
+                        "Account has been locked due to multiple failed login attempts. " +
+                                "Please try again later."
+                );
+            }
+
+            // Don't leak whether username exists - generic error message
+            throw new UnauthorizedException("Invalid username or password");
         }
-
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
-
-        log.info("User logged in successfully: {}", user.getUsername());
-
-        return AuthResponseDTO.builder()
-                .token(token)
-                .refreshToken(refreshToken.getToken())
-                .type("Bearer")
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .fullName(user.getFullName())
-                .role(user.getRole().name())
-                .build();
     }
 
     @Transactional
