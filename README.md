@@ -854,36 +854,12 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 👤 Author
-
-**Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Name](https://linkedin.com/in/yourprofile)
-- Email: your.email@example.com
-
----
-
 ## 🙏 Acknowledgments
 
 - Spring Boot Documentation
 - JWT.io for token debugging
 - Baeldung Spring Security tutorials
 - Stack Overflow community
-
----
-
-## 📞 Support
-
-If you have any questions or need help, please:
-- Open an issue on GitHub
-- Email: support@example.com
-- Join our Discord: [invite-link]
 
 ---
 
