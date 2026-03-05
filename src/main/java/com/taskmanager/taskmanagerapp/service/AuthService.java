@@ -60,10 +60,6 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        emailVerificationService.sendVerificationEmail(savedUser);
-
-        log.info("User registered successfully: {}", savedUser.getUsername());
-
         // Auto-login after registration
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -106,6 +102,11 @@ public class AuthService {
 
             // ── Block login if email is not verified ──
             if (!user.getEmailVerified()) {
+                long startTime = System.currentTimeMillis();
+                emailVerificationService.sendVerificationEmail(user);
+                long endTime = System.currentTimeMillis();
+                log.info("Email verification takes {} ms",endTime-startTime);
+                log.info("User registered successfully: {}", user.getUsername());
                 throw new UnauthorizedException("Email not verified. Please check your inbox or resend verification.");
             }
 

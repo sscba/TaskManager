@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.config;
+package com.taskmanager.taskmanagerapp.config.initializer;
 
 import com.taskmanager.taskmanagerapp.entity.Role;
 import com.taskmanager.taskmanagerapp.entity.User;

@@ -1,4 +1,4 @@
-package com.taskmanager.taskmanagerapp.config;
+package com.taskmanager.taskmanagerapp.config.security;
 
 
 import com.taskmanager.taskmanagerapp.security.CustomeUserDetailsService;
